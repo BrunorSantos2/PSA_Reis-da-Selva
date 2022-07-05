@@ -1,4 +1,4 @@
-// Slave: Serial Communication between two Arduino Boards
+// Slave: Serial Communication between two Arduino Boardds
 #include <NewPing.h>
 #include <Servo.h>
 
