@@ -36,28 +36,34 @@ char number  = ' ';     //Comunicação entre dois Arduinos
     int left_sensor_state;
     int right_sensor_state;
 
+    int left_sensor_turn;
+    int right_sensor_turn;
 //
     int distance = 0;
     int leftDistance;
     int rightDistance;
+    int distanceTurn;
+    
     boolean object;
-
+    boolean detetar;
+    boolean linha;
+    
 //Definir Encoders
-#define encoder1A  0       //signal A of left encoder  (white wire)
-#define encoder1B  1       //signal B of left encoder  (yellow wire)
-#define encoder2A  2       //signal A of right encoder  (white wire)
-#define encoder2B  3       //signal B of right encoder  (yellow wire)
+//#define encoder1A  0       //signal A of left encoder  (white wire)
+//#define encoder1B  1       //signal B of left encoder  (yellow wire)
+//#define encoder2A  2       //signal A of right encoder  (white wire)
+//#define encoder2B  3       //signal B of right encoder  (yellow wire)
 
-volatile int encoderLeftPosition = 0;     // counts of left encoder 
-volatile int encoderRightPosition = 0;    // counts of right encoder 
-float  DIAMETER  = 65  ;                  // wheel diameter (in mm)  
-float distanceLeftWheel, distanceRightWheel, Dc, Orientation_change;
-float ENCODER_RESOLUTION = 333.3;         //encoder resolution (in pulses per revolution)  where in Rover 5,  1000 state changes per 3 wheel rotations 
-int x = 0;                                // x initial coordinate of mobile robot 
-int y = 0;                                // y initial coordinate of mobile robot 
-float Orientation  = 0;                   // The initial orientation of mobile robot 
-float WHEELBASE=130  ;                    //  the wheelbase of the mobile robot in mm
-float CIRCUMSTANCE =PI * DIAMETER  ;
+//volatile int encoderLeftPosition = 0;     // counts of left encoder 
+//volatile int encoderRightPosition = 0;    // counts of right encoder 
+//float  DIAMETER  = 65  ;                  // wheel diameter (in mm)  
+//float distanceLeftWheel, distanceRightWheel, Dc, Orientation_change;
+//float ENCODER_RESOLUTION = 333.3;         //encoder resolution (in pulses per revolution)  where in Rover 5,  1000 state changes per 3 wheel rotations 
+//int x = 0;                                // x initial coordinate of mobile robot 
+//int y = 0;                                // y initial coordinate of mobile robot 
+//float Orientation  = 0;                   // The initial orientation of mobile robot 
+//float WHEELBASE=130  ;                    //  the wheelbase of the mobile robot in mm
+//float CIRCUMSTANCE =PI * DIAMETER  ;
 
 
 
@@ -85,133 +91,135 @@ void setup() {
   //servo
     servo.attach(8);
     servo.write(90);
+
+   detetar = true;
    
 }
 
 void loop() {
-  
-String readString;
-String Q;
- 
-while (Serial.available()) {
-      delay(1);
-    if (Serial.available() >0) {
-      char c = Serial.read();  //gets one byte from serial buffer
-    if (isControl(c)) {
-      //'Serial.println("it's a control character");
-      break;
-    }
-      readString += c; //makes the string readString    
-    }
- }   
+  infra();
+//String readString;
+//String Q;
+// 
+//while (Serial.available()) {
+//      delay(1);
+//    if (Serial.available() >0) {
+//      char c = Serial.read();  //gets one byte from serial buffer
+//    if (isControl(c)) {
+//      //'Serial.println("it's a control character");
+//      break;
+//    }
+//      readString += c; //makes the string readString    
+//    }
+// }   
 
 
 //  Serial.println("Auto");
 //  infra();  
-Q = readString;
+//Q = readString;
+//  
+// if (Q  == "8" && Q != "9") { 
+//  
+//  Serial.println("Auto");
+//  left_sensor_state = analogRead(left_sensor_pin);
+//  right_sensor_state = analogRead(right_sensor_pin);
   
- if (Q  == "8" && Q != "9") { 
-  
-  Serial.println("Auto");
-  left_sensor_state = analogRead(left_sensor_pin);
-  right_sensor_state = analogRead(right_sensor_pin);
-  
-   if(right_sensor_state < 200 && left_sensor_state < 200) {
-    objectAvoid();
-    //forward
+//   if(right_sensor_state < 200 && left_sensor_state < 200) {
+//    objectAvoid();
+//    //forward
+//    
+//  }else if(right_sensor_state < 200 && left_sensor_state > 200) {
+//    objectAvoid();
+//    //turn right
+//    moveRight();
+//    
+//  }else if(right_sensor_state > 200 && left_sensor_state < 200) {
+//    objectAvoid();
+//    //turn left
+//    moveLeft();
+//    
+//  }else if(right_sensor_state > 200 && left_sensor_state > 200) {
+//    objectAvoid();
+//    //stop
+//    Stop();
     
-  }else if(right_sensor_state < 200 && left_sensor_state > 200) {
-    objectAvoid();
-    //turn right
-    moveRight();
-    
-  }else if(right_sensor_state > 200 && left_sensor_state < 200) {
-    objectAvoid();
-    //turn left
-    moveLeft();
-    
-  }else if(right_sensor_state > 200 && left_sensor_state > 200) {
-    objectAvoid();
-    //stop
-    Stop();
-    
-  }  
- }
-
- if (Q == "9" && Q != "8")  {
-  Serial.println("Manual");
-  //manual();
- }  
- if (Q=="1") { 
-      Serial.println("Front");
-      digitalWrite(inR3, HIGH);   //Andar frente
-      digitalWrite(inR4, LOW);
-      digitalWrite(inL1, HIGH);
-      digitalWrite(inL2, LOW);
-      analogWrite(enR, 150);
-      analogWrite(enL , 150); 
-      Serial.println("anda caralho!"); 
-      }
-
-       if (Q=="2") { 
-      Serial.println("Back");
-      digitalWrite(inR3, LOW);   //Andar trás
-      digitalWrite(inR4, HIGH);
-      digitalWrite(inL1, LOW);
-      digitalWrite(inL2, HIGH);
-      analogWrite(enR, 150);
-      analogWrite(enL , 150);  
-      }
-
-       if (Q=="3") { 
-      Serial.println("Left");
-      digitalWrite(inR3, HIGH);   //Andar Esquerdo
-      digitalWrite(inR4, LOW);
-      digitalWrite(inL1, HIGH);
-      digitalWrite(inL2, LOW);
-      analogWrite(enR, 150);
-      analogWrite(enL , 100);  
-      }
-
-      if (Q=="4") { 
-      Serial.println("Left 360");
-      digitalWrite(inR3, HIGH);   //Andar 360 Esquerdo
-      digitalWrite(inR4, LOW);
-      digitalWrite(inL1, LOW);
-      digitalWrite(inL2, HIGH);
-      analogWrite(enR, 150);
-      analogWrite(enL , 150);  
-      }
-
-      if (Q=="5") { 
-      Serial.println("Right");
-      digitalWrite(inR3, HIGH);   //Andar Direito
-      digitalWrite(inR4, LOW);
-      digitalWrite(inL1, HIGH);
-      digitalWrite(inL2, LOW);
-      analogWrite(enR, 100);
-      analogWrite(enL , 150);  
-      }
-
-      if (Q=="6") { 
-      Serial.println("Right 360");
-      digitalWrite(inR3, LOW);   //Andar 360 Direito
-      digitalWrite(inR4, HIGH);
-      digitalWrite(inL1, HIGH);
-      digitalWrite(inL2, LOW);
-      analogWrite(enR, 150);
-      analogWrite(enL , 150);  
-      }
-
-      if (Q=="7") { 
-      Serial.println("Stop");
-      digitalWrite(inR3, LOW);   //Parar
-      digitalWrite(inR4, LOW);
-      digitalWrite(inL1, LOW);
-      digitalWrite(inL2, LOW);
-      analogWrite(enR, 0);
-      analogWrite(enL , 0);  
-      }
+//  }  
+// }
+//
+// if (Q == "9" && Q != "8")  {
+//  Serial.println("Manual");
+//  manual();
+// }  
+// if (Q=="1") { 
+//      Serial.println("Front");
+//      digitalWrite(inR3, HIGH);   //Andar frente
+//      digitalWrite(inR4, LOW);
+//      digitalWrite(inL1, HIGH);
+//      digitalWrite(inL2, LOW);
+//      analogWrite(enR, 150);
+//      analogWrite(enL , 150); 
+//      Serial.println("anda caralho!"); 
+//      }
+//
+//       if (Q=="2") { 
+//      Serial.println("Back");
+//      digitalWrite(inR3, LOW);   //Andar trás
+//      digitalWrite(inR4, HIGH);
+//      digitalWrite(inL1, LOW);
+//      digitalWrite(inL2, HIGH);
+//      analogWrite(enR, 150);
+//      analogWrite(enL , 150);  
+//      }
+//
+//       if (Q=="3") { 
+//      Serial.println("Left");
+//      digitalWrite(inR3, HIGH);   //Andar Esquerdo
+//      digitalWrite(inR4, LOW);
+//      digitalWrite(inL1, HIGH);
+//      digitalWrite(inL2, LOW);
+//      analogWrite(enR, 150);
+//      analogWrite(enL , 100);  
+//      }
+//
+//      if (Q=="4") { 
+//      Serial.println("Left 360");
+//      digitalWrite(inR3, HIGH);   //Andar 360 Esquerdo
+//      digitalWrite(inR4, LOW);
+//      digitalWrite(inL1, LOW);
+//      digitalWrite(inL2, HIGH);
+//      analogWrite(enR, 150);
+//      analogWrite(enL , 150);  
+//      }
+//
+//      if (Q=="5") { 
+//      Serial.println("Right");
+//      digitalWrite(inR3, HIGH);   //Andar Direito
+//      digitalWrite(inR4, LOW);
+//      digitalWrite(inL1, HIGH);
+//      digitalWrite(inL2, LOW);
+//      analogWrite(enR, 100);
+//      analogWrite(enL , 150);  
+//      }
+//
+//      if (Q=="6") { 
+//      Serial.println("Right 360");
+//      digitalWrite(inR3, LOW);   //Andar 360 Direito
+//      digitalWrite(inR4, HIGH);
+//      digitalWrite(inL1, HIGH);
+//      digitalWrite(inL2, LOW);
+//      analogWrite(enR, 150);
+//      analogWrite(enL , 150);  
+//      }
+//
+//      if (Q=="7") { 
+//      Serial.println("Stop");
+//      digitalWrite(inR3, LOW);   //Parar
+//      digitalWrite(inR4, LOW);
+//      digitalWrite(inL1, LOW);
+//      digitalWrite(inL2, LOW);
+//      analogWrite(enR, 0);
+//      analogWrite(enL , 0);  
+//      }
 
 }
 
@@ -235,88 +243,158 @@ while (Serial.available()) {
  
 Q = readString;
 
-//   if (Q=="1") { 
-//      Serial.println("Front");
-//      digitalWrite(inR3, HIGH);   //Andar frente
-//      digitalWrite(inR4, LOW);
-//      digitalWrite(inL1, HIGH);
-//      digitalWrite(inL2, LOW);
-//      digitalWrite(enR, 255);
-//      digitalWrite(enL , 255);  
-//      }
-//
-//       if (Q=="2") { 
-//      Serial.println("Back");
-//      digitalWrite(inR3, LOW);   //Andar trás
-//      digitalWrite(inR4, HIGH);
-//      digitalWrite(inL1, LOW);
-//      digitalWrite(inL2, HIGH);
-//      digitalWrite(enR, 255);
-//      digitalWrite(enL , 255);  
-//      }
-//
-//       if (Q=="3") { 
-//      Serial.println("Left");
-//      digitalWrite(inR3, HIGH);   //Andar Esquerdo
-//      digitalWrite(inR4, LOW);
-//      digitalWrite(inL1, HIGH);
-//      digitalWrite(inL2, LOW);
-//      digitalWrite(enR, 255);
-//      digitalWrite(enL , 150);  
-//      }
-//
-//      if (Q=="4") { 
-//      Serial.println("Left 360");
-//      digitalWrite(inR3, HIGH);   //Andar 360 Esquerdo
-//      digitalWrite(inR4, LOW);
-//      digitalWrite(inL1, LOW);
-//      digitalWrite(inL2, HIGH);
-//      digitalWrite(enR, 255);
-//      digitalWrite(enL , 255);  
-//      }
-//
-//      if (Q=="5") { 
-//      Serial.println("Right");
-//      digitalWrite(inR3, HIGH);   //Andar Direito
-//      digitalWrite(inR4, LOW);
-//      digitalWrite(inL1, HIGH);
-//      digitalWrite(inL2, LOW);
-//      digitalWrite(enR, 155);
-//      digitalWrite(enL , 255);  
-//      }
-//
-//      if (Q=="6") { 
-//      Serial.println("Right 360");
-//      digitalWrite(inR3, LOW);   //Andar 360 Direito
-//      digitalWrite(inR4, HIGH);
-//      digitalWrite(inL1, HIGH);
-//      digitalWrite(inL2, LOW);
-//      digitalWrite(enR, 255);
-//      digitalWrite(enL , 255);  
-//      }
-//
-//      if (Q=="7") { 
-//      Serial.println("Stop");
-//      digitalWrite(inR3, LOW);   //Parar
-//      digitalWrite(inR4, LOW);
-//      digitalWrite(inL1, LOW);
-//      digitalWrite(inL2, LOW);
-//      digitalWrite(enR, 0);
-//      digitalWrite(enL , 0);  
-//      }
-//      else { //Se estiver a menos de 20 cm anda para trás
-//   
-//      digitalWrite(inR3, LOW);  
-//      digitalWrite(inR4, LOW);
-//      digitalWrite(inL1, LOW);
-//      digitalWrite(inL2, LOW);
-//      digitalWrite(enR, 0);
-//      digitalWrite(enL , 0);
-//      delay(100);
-//      }
-      Serial.println(number);
+   if (Q=="1") { 
+      Serial.println("Front");
+      digitalWrite(inR3, HIGH);   //Andar frente
+      digitalWrite(inR4, LOW);
+      digitalWrite(inL1, HIGH);
+      digitalWrite(inL2, LOW);
+      digitalWrite(enR, 255);
+      digitalWrite(enL , 255);  
+      }
+
+       if (Q=="2") { 
+      Serial.println("Back");
+      digitalWrite(inR3, LOW);   //Andar trás
+      digitalWrite(inR4, HIGH);
+      digitalWrite(inL1, LOW);
+      digitalWrite(inL2, HIGH);
+      digitalWrite(enR, 255);
+      digitalWrite(enL , 255);  
+      }
+
+       if (Q=="3") { 
+      Serial.println("Left");
+      digitalWrite(inR3, HIGH);   //Andar Esquerdo
+      digitalWrite(inR4, LOW);
+      digitalWrite(inL1, HIGH);
+      digitalWrite(inL2, LOW);
+      digitalWrite(enR, 255);
+      digitalWrite(enL , 150);  
+      }
+
+      if (Q=="4") { 
+      Serial.println("Left 360");
+      digitalWrite(inR3, HIGH);   //Andar 360 Esquerdo
+      digitalWrite(inR4, LOW);
+      digitalWrite(inL1, LOW);
+      digitalWrite(inL2, HIGH);
+      digitalWrite(enR, 255);
+      digitalWrite(enL , 255);  
+      }
+
+      if (Q=="5") { 
+      Serial.println("Right");
+      digitalWrite(inR3, HIGH);   //Andar Direito
+      digitalWrite(inR4, LOW);
+      digitalWrite(inL1, HIGH);
+      digitalWrite(inL2, LOW);
+      digitalWrite(enR, 155);
+      digitalWrite(enL , 255);  
+      }
+
+      if (Q=="6") { 
+      Serial.println("Right 360");
+      digitalWrite(inR3, LOW);   //Andar 360 Direito
+      digitalWrite(inR4, HIGH);
+      digitalWrite(inL1, HIGH);
+      digitalWrite(inL2, LOW);
+      digitalWrite(enR, 255);
+      digitalWrite(enL , 255);  
+      }
+
+      if (Q=="7") { 
+      Serial.println("Stop");
+      digitalWrite(inR3, LOW);   //Parar
+      digitalWrite(inR4, LOW);
+      digitalWrite(inL1, LOW);
+      digitalWrite(inL2, LOW);
+      digitalWrite(enR, 0);
+      digitalWrite(enL , 0);  
+      }
+      
 }  
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Stop() {
+  digitalWrite(inR3, LOW);   //Parar
+  digitalWrite(inR4, LOW);
+  digitalWrite(inL1, LOW);
+  digitalWrite(inL2, LOW);
+  analogWrite(enR, 0);
+  analogWrite(enL , 0);
+
+}
+
+void moveForward() {
+  digitalWrite(inR3, HIGH);   //Andar frente
+  digitalWrite(inR4, LOW);
+  digitalWrite(inL1, HIGH);
+  digitalWrite(inL2, LOW);
+  analogWrite(enR, 100);
+  analogWrite(enL , 100);
+}
+
+void moveBackward() {
+  digitalWrite(inR3, LOW);   //Andar trás
+  digitalWrite(inR4, HIGH);
+  digitalWrite(inL1, LOW);
+  digitalWrite(inL2, HIGH);
+  analogWrite(enR, 100);
+  analogWrite(enL , 100);
+}
+void slow (){
+ moveForward();
+ delay(50);
+ Stop();
+ delay(100); 
+ 
+ slow();
+  }
+
+  
+void moveRight() {
+  digitalWrite(inR3, LOW);   //Andar Direito
+  digitalWrite(inR4, HIGH);
+  digitalWrite(inL1, HIGH);
+  digitalWrite(inL2, LOW);
+  analogWrite(enR, 120);
+  analogWrite(enL , 120); 
+}
+
+
+void moveLeft() {
+  digitalWrite(inR3, HIGH);   //Andar Esquerdo
+  digitalWrite(inR4, LOW);
+  digitalWrite(inL1, LOW);
+  digitalWrite(inL2, HIGH);
+  analogWrite(enR, 120);
+  analogWrite(enL , 120);  
+}
+
+
+void Right360() {
+  digitalWrite(inR3, LOW);   //Andar Direito
+  digitalWrite(inR4, HIGH);
+  digitalWrite(inL1, HIGH);
+  digitalWrite(inL2, LOW);
+  analogWrite(enR, 150);
+  analogWrite(enL , 150); 
+}
+
+
+void Left360() {
+  digitalWrite(inR3, HIGH);   //Andar Esquerdo
+  digitalWrite(inR4, LOW);
+  digitalWrite(inL1, LOW);
+  digitalWrite(inL2, HIGH);
+  analogWrite(enR, 150);
+  analogWrite(enL , 150);  
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void infra() {
 
@@ -327,20 +405,26 @@ void infra() {
     objectAvoid();
     //forward
     
+    
   }else if(right_sensor_state < 200 && left_sensor_state > 200) {
     objectAvoid();
     //turn right
-    moveRight();
+    Right360();
+    //moveRight();
     
   }else if(right_sensor_state > 200 && left_sensor_state < 200) {
     objectAvoid();
     //turn left
-    moveLeft();
+    Left360();
+    //moveLeft();
     
   }else if(right_sensor_state > 200 && left_sensor_state > 200) {
     objectAvoid();
     //stop
+    moveBackward();
+    delay(50);
     Stop();
+    
     
   }
 }
@@ -348,7 +432,7 @@ void infra() {
 
 void objectAvoid() {
   distance = getDistance();
-  if (distance <= 15) {
+  if (distance <= 15 && detetar == true) {
     //stop
     Stop();
     Serial.println("Stop");
@@ -360,8 +444,7 @@ void objectAvoid() {
       object = true;
       turn();
       Serial.println("moveLeft");
-    } 
-    if (rightDistance > leftDistance){
+    } else {
       //right
       object = false;
       turn();
@@ -371,7 +454,7 @@ void objectAvoid() {
   }
   else {
     //forward
-    Serial.println("going forward"); 
+    //Serial.println("going forward"); 
     moveForward();
   }
 }
@@ -382,7 +465,7 @@ int getDistance() {
   delay(50);
   int cm = sonar.ping_cm();
   if (cm == 0) {
-    cm = 100;
+    cm = 250;
   }
   return cm;
   
@@ -415,132 +498,119 @@ int lookRight() {
   delay(100);
 }
 
-void Stop() {
-  digitalWrite(inR3, LOW);   //Parar
-  digitalWrite(inR4, LOW);
-  digitalWrite(inL1, LOW);
-  digitalWrite(inL2, LOW);
-  analogWrite(enR, 0);
-  analogWrite(enL , 0);
 
-}
-
-void moveForward() {
-  digitalWrite(inR3, HIGH);   //Andar frente
-  digitalWrite(inR4, LOW);
-  digitalWrite(inL1, HIGH);
-  digitalWrite(inL2, LOW);
-  analogWrite(enR, 100);
-  analogWrite(enL , 100);
-}
-
-void moveBackward() {
-  digitalWrite(inR3, LOW);   //Andar trás
-  digitalWrite(inR4, HIGH);
-  digitalWrite(inL1, LOW);
-  digitalWrite(inL2, HIGH);
-  analogWrite(enR, 100);
-  analogWrite(enL , 100);
-}
 
 void turn() {                     //Problema
   
-  left_sensor_state = analogRead(left_sensor_pin);
-  right_sensor_state = analogRead(right_sensor_pin);
-  
   if (object == false) {
     Serial.println("turn Right");   //Virar Direita - Mais distância
+   
     moveBackward();
     delay(400);
+    Stop();
+    delay(400);
+    
     Right360();
-    delay(700);
+    delay(600);
+    Stop();
+    delay(400);
+    
     moveForward();
-    delay(1000);
+    delay(800);
+    Stop();
+    delay(400);
+    
     Left360();
-    delay(700);
+    delay(400);
     Stop();
     servo.write(180);
-    delay(300);
-      if(getDistance <=10){
-        slow();
-        }
-      else if(getDistance >10){
-      Left360();
-      delay(300);
-        if(right_sensor_state > 200 && left_sensor_state > 200){
-        slow();
-      }
-        else if (right_sensor_state > 200 && left_sensor_state > 200){
-        Stop();
-        delay(500);
-        infra();
-        }
-        }        
-  
-    infra();
-               
-                  
-                    }
-
-  if (object == true){
-    Serial.println("turn Left");   //Virar Esquerda - Mais distância
-    moveBackward();
     delay(400);
-    moveLeft();
-    delay(700);
     moveForward();
-    delay(1000);
-    moveRight();
-    if(right_sensor_state < 200 && left_sensor_state < 200) {
-      Stop();
-      delay(500);
-      infra();
+    delay(100);
+
+    distanceTurn = getDistance();
+    while (distanceTurn <= 25) {
+        moveForward();
+        delay(100);
+        Stop();
+        delay(100);
+        
+        distanceTurn = getDistance();
+        Serial.println(distanceTurn);
     }
-    else {
-      moveForward();
+    moveForward();
+    delay(400);
+    servo.write(90);
+    Stop();
+    delay(500);    
+    Left360();
+    delay(300);
+    left_sensor_turn = analogRead(left_sensor_pin);
+    right_sensor_turn = analogRead(right_sensor_pin);
+    while (right_sensor_turn > 200 || left_sensor_turn > 200) {
+        moveForward();
+        delay(100);
+        Stop();
+        delay(100);        
+    left_sensor_turn = analogRead(left_sensor_pin);
+    right_sensor_turn = analogRead(right_sensor_pin);
     }
+    Stop();
+    delay(500);
+    detetar = false;
+    linha = true;
+    infra();
+    
   }
+
+//  else if {object == true)
+//    Serial.println("turn Left");   //Virar Esquerda - Mais distância
+//    moveBackward();
+//    delay(400);
+//    Stop();
+//    delay(400);
+//
+//    
+//    Left360();
+//    delay(600);
+//    Stop();
+//    delay(400);
+//    
+//    moveForward();
+//    delay(8000);
+//    Stop();
+//    delay(400);
+//    
+//    Right360();
+//    delay(700);
+//    Stop();
+//    servo.write(0);
+//    delay(400);
+//
+//    distanceTurn = getDistance();
+//    while (distanceTurn <= 20) {
+//        slow();
+//    }
+//  
+//    Right360();
+//    delay(300);
+//
+//    left_sensor_turn = analogRead(left_sensor_pin);
+//    right_sensor_turn = analogRead(right_sensor_pin);
+//      
+//    while (right_sensor_turn > 200 || left_sensor_turn > 200) {
+//          slow();
+//    }
+//       
+//    Stop();
+//    delay(500);
+//    detetar = false;
+//    infra();
+//  }
 }
 
 
-void slow (){
- moveForward();
- delay(100); 
-  slow();
-  
-  }
-void moveRight() {
-  digitalWrite(inR3, LOW);   //Andar Direito
-  digitalWrite(inR4, HIGH);
-  digitalWrite(inL1, HIGH);
-  digitalWrite(inL2, LOW);
-  analogWrite(enR, 100);
-  analogWrite(enL , 100); 
-}
-void moveLeft() {
-  digitalWrite(inR3, HIGH);   //Andar Esquerdo
-  digitalWrite(inR4, LOW);
-  digitalWrite(inL1, LOW);
-  digitalWrite(inL2, HIGH);
-  analogWrite(enR, 100);
-  analogWrite(enL , 100);  
-}
-void Right360() {
-  digitalWrite(inR3, LOW);   //Andar Direito
-  digitalWrite(inR4, HIGH);
-  digitalWrite(inL1, HIGH);
-  digitalWrite(inL2, LOW);
-  analogWrite(enR, 150);
-  analogWrite(enL , 150); 
-}
-void Left360() {
-  digitalWrite(inR3, HIGH);   //Andar Esquerdo
-  digitalWrite(inR4, LOW);
-  digitalWrite(inL1, LOW);
-  digitalWrite(inL2, HIGH);
-  analogWrite(enR, 150);
-  analogWrite(enL , 150);  
-}
+
 //void encoder() {
 //  distanceLeftWheel = CIRCUMSTANCE * (encoderLeftPosition / ENCODER_RESOLUTION);       //  travel distance for the left and right wheel respectively 
 //  distanceRightWheel = CIRCUMSTANCE * (encoderRightPosition / ENCODER_RESOLUTION);     // which equal to pi * diameter of wheel * (encoder counts / encoder resolution ) 
